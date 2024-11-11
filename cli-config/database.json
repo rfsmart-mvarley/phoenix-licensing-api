@@ -1,0 +1,27 @@
+{
+    "Database": {
+        "DefaultZone": "zone1",
+        "Zones": {
+            "zone1": {
+                "Host": "localhost",
+                "Port": 5432,
+                "Username": "postgres",
+                "Password": "changeme",
+                "Database": "zone1"
+            }
+        },
+        "Schemas": [
+            {
+                "ZoneId": "zone1",
+                "Name": "licensing",
+                "Type": "global"
+            },
+            {
+                "ZoneId": "zone1",
+                "Name": "rfsmart_dev",
+                "Type": "tenant",
+                "Main": true
+            }
+        ]
+    }
+}
