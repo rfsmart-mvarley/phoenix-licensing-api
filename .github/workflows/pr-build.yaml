@@ -1,0 +1,27 @@
+name: PR Build
+on:
+  workflow_dispatch:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches:
+      - main
+jobs:  
+  integration-tests:
+    uses: ./.github/workflows/integration-tests.yaml
+    permissions:
+      id-token: write
+      contents: read
+      packages: read
+    secrets: inherit
+
+  build:
+    uses: RF-SMART-for-OracleCloud/phoenix-reusable-workflows/.github/workflows/docker-build.yaml@main
+    with:
+      image: ghcr.io/rf-smart-for-oraclecloud/TEMP-LATE-web
+      dockerfile: Rfsmart.Phoenix.TEMPLATE.Web/Dockerfile
+      version-suffix: pr-${{ github.event.pull_request.number }}
+    name: Docker build
+    permissions:
+      contents: read
+      packages: write
+    secrets: inherit

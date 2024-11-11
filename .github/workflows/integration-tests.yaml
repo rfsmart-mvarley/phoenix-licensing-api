@@ -1,0 +1,35 @@
+name: Run Integration Tests
+on:
+  workflow_call:
+permissions:
+  id-token: write
+  contents: read
+  packages: read
+jobs:
+  RunIntegrationTests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure aws credentials
+        uses: RF-SMART-for-OracleCloud/phoenix-action-aws-creds@main
+        with:
+          aws-env: phxdev
+
+      - name: Login to image repository
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Start the test environment
+        env:
+          NUGET_USERNAME: ${{ github.actor }}
+          NUGET_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: docker compose up --exit-code-from TEMP-LATE.integrationtests TEMP-LATE.integrationtests
+
+      - name: Tear down the test environment
+        if: always()
+        run: docker compose down TEMP-LATE.integrationtests

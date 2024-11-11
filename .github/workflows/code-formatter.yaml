@@ -1,0 +1,23 @@
+name: Formatter
+on:
+  workflow_call:
+permissions:
+  contents: read
+  packages: read
+  checks: write
+jobs:
+  FormatCode:
+    runs-on: ubuntu-latest    
+    defaults:
+    run:
+      shell: pwsh
+    steps:
+        - uses: actions/checkout@v4
+        - uses: actions/setup-dotnet@v4
+          with:
+            dotnet-version: '8.x'
+        - name: Dotnet tool restore
+          run: dotnet tool restore
+        - name: Dotnet CSharpier
+          run: dotnet csharpier . --check
+
