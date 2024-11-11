@@ -2,7 +2,7 @@
   "name": "main branch",
   "target": "branch",
   "source_type": "Repository",
-  "source": "RF-SMART-for-OracleCloud/phoenix-TEMP-LATE-api",
+  "source": "RF-SMART-for-OracleCloud/phoenix-licensing-api",
   "enforcement": "active",
   "conditions": {
     "ref_name": {

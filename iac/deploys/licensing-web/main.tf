@@ -29,8 +29,8 @@ module "tags" {
 
   extra_tags = {
     MonoRepo     = "True"
-    MonoRepoPath = "iac/deploys/TEMP-LATE-web"
-    Repo         = "github.com/RF-SMART-for-OracleCloud/phoenix-TEMP-LATE-api"
+    MonoRepoPath = "iac/deploys/licensing-web"
+    Repo         = "github.com/RF-SMART-for-OracleCloud/phoenix-licensing-api"
     map-migrated = "d-server-02nwr9q06bp0nt"
   }
 }
@@ -44,7 +44,7 @@ module "ecs_app" {
   app_image_tag          = var.app_image_tag
   region                 = var.region
   service_declaration    = var.service_declaration
-  listener_rule_priority = 4
+  listener_rule_priority = 7
   environment            = var.environment
   tags                   = module.tags.tags
   route_53_a_record      = var.route_53_a_record

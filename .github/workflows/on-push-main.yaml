@@ -18,8 +18,8 @@ jobs:
       - update-version
     uses: RF-SMART-for-OracleCloud/phoenix-reusable-workflows/.github/workflows/docker-build.yaml@main
     with:
-      image: ghcr.io/rf-smart-for-oraclecloud/TEMP-LATE-web
-      dockerfile: Rfsmart.Phoenix.TEMPLATE.Web/Dockerfile
+      image: ghcr.io/rf-smart-for-oraclecloud/licensing-web
+      dockerfile: Rfsmart.Phoenix.Licensing.Web/Dockerfile
       version: ${{ needs.update-version.outputs.version }}
     name: Docker build
     permissions:
@@ -39,6 +39,6 @@ jobs:
     secrets: inherit
     with:
       aws-env: phxdev
-      tf-directory: ./iac/deploys/TEMP-LATE-web
+      tf-directory: ./iac/deploys/licensing-web
       pre-deploy-script: |
         $env:TF_VAR_app_image_tag = "${{ needs.update-version.outputs.version }}"

@@ -17,8 +17,8 @@ jobs:
   build:
     uses: RF-SMART-for-OracleCloud/phoenix-reusable-workflows/.github/workflows/docker-build.yaml@main
     with:
-      image: ghcr.io/rf-smart-for-oraclecloud/TEMP-LATE-web
-      dockerfile: Rfsmart.Phoenix.TEMPLATE.Web/Dockerfile
+      image: ghcr.io/rf-smart-for-oraclecloud/licensing-web
+      dockerfile: Rfsmart.Phoenix.Licensing.Web/Dockerfile
       version-suffix: pr-${{ github.event.pull_request.number }}
     name: Docker build
     permissions:

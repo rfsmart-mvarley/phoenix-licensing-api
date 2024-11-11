@@ -28,8 +28,8 @@ jobs:
         env:
           NUGET_USERNAME: ${{ github.actor }}
           NUGET_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: docker compose up --exit-code-from TEMP-LATE.integrationtests TEMP-LATE.integrationtests
+        run: docker compose up --exit-code-from licensing.integrationtests licensing.integrationtests
 
       - name: Tear down the test environment
         if: always()
-        run: docker compose down TEMP-LATE.integrationtests
+        run: docker compose down licensing.integrationtests

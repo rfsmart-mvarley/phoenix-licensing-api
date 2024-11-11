@@ -48,5 +48,5 @@ variable "service_declaration" {
 variable "api_gateway_path" {
   type        = string
   description = "API gateway path"
-  default     = "TEMP-LATE"
+  default     = "licensing"
 }

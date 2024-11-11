@@ -2,7 +2,7 @@
 
 ## Overview
 
-Deploys TEMP-LATE-web to an ECS cluster.
+Deploys licensing-web to an ECS cluster.
 
 <!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
 ## Requirements

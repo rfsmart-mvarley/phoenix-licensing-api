@@ -8,9 +8,9 @@
 # database or a cache. For examples, see the Awesome Compose repository:
 # https://github.com/docker/awesome-compose
 services:  
-  TEMP-LATE.api:
+  licensing.api:
     build:
-      dockerfile: ./Rfsmart.Phoenix.TEMPLATE.Web/Dockerfile
+      dockerfile: ./Rfsmart.Phoenix.Licensing.Web/Dockerfile
       args:
         NUGET_USERNAME: ${NUGET_USERNAME}
         NUGET_TOKEN: ${NUGET_TOKEN}
@@ -26,28 +26,6 @@ services:
       ASPNETCORE_ENVIRONMENT: "Development"
     networks:
       - phoenix
-
-  TEMP-LATE.integrationtests:
-    image: TEMP-LATE-integration-tests
-    build:
-      dockerfile: ./Rfsmart.Phoenix.TEMPLATE.IntegrationTests/Dockerfile
-      args:
-        NUGET_USERNAME: ${NUGET_USERNAME}
-        NUGET_TOKEN: ${NUGET_TOKEN}
-    depends_on:
-      TEMP-LATE.api:
-        condition: service_healthy
-    environment:
-      DOTNET_ENVIRONMENT: "Development"
-      AWS_REGION: ${AWS_REGION}
-      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
-      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
-      AWS_SESSION_TOKEN: ${AWS_SESSION_TOKEN}
-      IntegrationTestSettings__AppUrl: "http://TEMP-LATE.api:5010"
-    networks:
-      - phoenix
-    volumes:
-      - $HOME$USERPROFILE/.aws:/root/.aws:ro
 
 networks:
   phoenix:
