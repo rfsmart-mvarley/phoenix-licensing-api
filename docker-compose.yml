@@ -27,6 +27,45 @@ services:
     networks:
       - phoenix
 
+  postgres:
+    image: postgres:16.2
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      PGUSER: ${POSTGRES_USER:-postgres}
+      PGDATA: /data/postgres
+    volumes:
+      - lc_postgres_data:/data/postgres
+    ports:
+      - '5432:5432'
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready", "-U $POSTGRES_USER" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - phoenix
+    restart: always
+
+  migrate.schemas:
+    image: ghcr.io/rf-smart-for-oraclecloud/cli
+    command: db schema migrate --migrations-path /Migrations --ensure-db
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DOTNET_ENVIRONMENT: Development
+      Database__Zones__zone1__Host: postgres
+      AWS_REGION: us-east-1
+    volumes:
+      - ./cli-config:/home/app/.rfsmart:ro
+      - ./Migrations:/Migrations:ro
+    networks:
+      - phoenix
+
 networks:
   phoenix:
     driver: bridge
+
+volumes:
+  lc_postgres_data:

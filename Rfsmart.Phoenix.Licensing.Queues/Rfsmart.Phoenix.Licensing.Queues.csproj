@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\Rfsmart.Phoenix.Licensing\Rfsmart.Phoenix.Licensing.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="DataDog.Trace.Bundle" Version="3.5.0" />
+    <PackageReference Include="Rfsmart.Phoenix.Events" Version="1.0.12" />
+    <PackageReference Include="Rfsmart.Phoenix.Logging" Version="1.0.12" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+  </PropertyGroup>
+
+</Project>

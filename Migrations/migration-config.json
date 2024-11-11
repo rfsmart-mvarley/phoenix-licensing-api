@@ -1,0 +1,13 @@
+{
+  "SchemaTypes": [
+    {
+      "Directory": "licensing-tenant",
+      "Type": "tenant",
+      "VersionInfoPrefix": "licensing"
+    },
+    {
+      "Directory": "licensing-global",
+      "Type": "global"
+    }
+  ]
+}
