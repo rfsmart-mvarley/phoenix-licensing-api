@@ -31,7 +31,7 @@ namespace Rfsmart.Phoenix.Licensing.Models
         /// <summary>
         /// The end-date for a pricing structure.
         /// </summary>
-        public DateTime EnforcedUntil { get; set; }
+        public DateTime? EnforcedUntil { get; set; }
 
         /// <summary>
         /// The active flag for the feature.

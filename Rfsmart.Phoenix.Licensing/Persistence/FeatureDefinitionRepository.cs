@@ -50,7 +50,7 @@ namespace Rfsmart.Phoenix.Licensing.Persistence
                 @PriceOnDemand,
                 @EnforcedFrom,
                 @EnforcedUntil,
-                CURRENT_TIMESTAMP
+                CURRENT_TIMESTAMP,
                 @Caller,
                 CURRENT_TIMESTAMP,
                 @Caller,
@@ -70,12 +70,21 @@ namespace Rfsmart.Phoenix.Licensing.Persistence
                 IsActive = true,
             };
 
-            var integration = await Exec(db => db.QuerySingleAsync<FeatureDefinition>(sql, @params));
+            try
+            {
+                var integration = await Exec(db => db.QuerySingleAsync<FeatureDefinition>(sql, @params));
 
-            return integration
-                ?? throw new DataMisalignedException(
-                    "FeatureDefinition could not be retrieved after creation"
-                );
+                return integration
+                    ?? throw new DataMisalignedException(
+                        "FeatureDefinition could not be retrieved after creation"
+                    );
+            }
+            catch (Exception ex)
+            {
+                var e = ex.Message;
+                throw;
+            }
+            
         }
 
         public async Task<FeatureDefinition?> Get(string featureName)

@@ -11,6 +11,8 @@ using Rfsmart.Phoenix.Licensing.Web.Middleware;
 using Rfsmart.Phoenix.Licensing.Swagger.Filters;
 using Rfsmart.Phoenix.Logging;
 using Rfsmart.Phoenix.Api.Auth;
+using Rfsmart.Phoenix.Api.Config;
+using Rfsmart.Phoenix.Api.Healthchecks;
 using Rfsmart.Phoenix.Common.Config;
 using Rfsmart.Phoenix.Configuration;
 
@@ -37,6 +39,8 @@ builder
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
+    Swagger.ConfigureOptions(builder.Configuration)(c);
+
     List<string> xmlFiles = Directory
         .GetFiles(AppContext.BaseDirectory, "*.xml", SearchOption.TopDirectoryOnly)
         .ToList();
@@ -54,6 +58,11 @@ builder.Services.AddSwaggerGen(c =>
 
     c.UseInlineDefinitionsForEnums();
 });
+
+builder.Services.AddProblemDetails();
+builder.Services.AddHealthChecks();
+
+builder.Services.AddForwardedHeaders(builder.Configuration);
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddRfsmartJwtAuthentication(
@@ -76,9 +85,8 @@ builder
 builder.Services.AddTenantContext();
 builder.Services.AddUserContext();
 
+//builder.Services.AddAwsServices(builder.Configuration);
 builder.Services.AddData(builder.Configuration);
-
-builder.Services.AddProblemDetails();
 
 builder.Services.AddScoped<IFeatureDefinitionRepository, FeatureDefinitionRepository>();
 builder.Services.AddScoped<IFeatureIssueRepository, FeatureIssueRepository>();
@@ -94,7 +102,13 @@ if (app.Environment.IsDevelopment())
 }
 
 // Configure the HTTP request pipeline.
-app.UseSwagger()
+app.UseHealthChecks(
+                "/healthcheck",
+                new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
+                {
+                    ResponseWriter = ApiHealthCheckWriters.BuildDefault(),
+                }
+            ).UseSwagger()
     .UseSwaggerUI(c =>
     {
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "RF-SMART Licensing API");
@@ -111,4 +125,4 @@ app.UseSwagger()
 
 app.MapControllers();
 
-app.Run();
+await app.RunAsync();
