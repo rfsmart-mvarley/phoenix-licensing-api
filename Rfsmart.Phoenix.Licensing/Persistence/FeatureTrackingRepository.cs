@@ -5,6 +5,7 @@ using Rfsmart.Phoenix.Common.Context;
 using Rfsmart.Phoenix.Common.Models;
 using Rfsmart.Phoenix.Database.Services;
 using Rfsmart.Phoenix.Licensing.Interfaces;
+using Rfsmart.Phoenix.Licensing.Models;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;

@@ -1,4 +1,5 @@
 ﻿using Rfsmart.Phoenix.Common.Models;
+using Rfsmart.Phoenix.Licensing.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Rfsmart.Phoenix.Licensing.Interfaces
 {
-    internal interface IFeatureTrackingRepository
+    public interface IFeatureTrackingRepository
     {
         Task<FeatureTrackingRecord?> Get(string featureName);
         Task<FeatureTrackingRecord> Insert(FeatureTrackingRecord request);

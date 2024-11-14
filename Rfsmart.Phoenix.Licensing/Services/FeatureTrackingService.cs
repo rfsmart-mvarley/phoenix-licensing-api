@@ -2,45 +2,51 @@
 using Rfsmart.Phoenix.Licensing.Models;
 using System;
 
-internal class FeatureTrackingService(IFeatureTrackingRepository featureTrackingRepository,
-    IFeatureIssueRepository featureIssueRepository) : IFeatureTrackingService
+namespace Rfsmart.Phoenix.Licensing.Services
 {
-    public async Task<bool> AssignFeaturesToUser(AssignFeatureRequest request)
+    public class FeatureTrackingService(IFeatureTrackingRepository featureTrackingRepository,
+    IFeatureIssueRepository featureIssueRepository) : IFeatureTrackingService
     {
-        foreach (var item in request.Features.Distinct())
+        public async Task<bool> AssignFeaturesToUser(AssignFeatureRequest request)
         {
-            var issue = await featureIssueRepository.Get(item);
+            var distinctFeatures = request.Features.Distinct();
 
-            if (issue is null)
+            foreach (var item in distinctFeatures)
             {
-                throw new ArgumentException($"Feature {item} is not licensed!");
+                var issue = await featureIssueRepository.Get(item);
+
+                if (issue is null)
+                {
+                    throw new ArgumentException($"Feature {item} is not licensed!");
+                }
             }
+
+            foreach (var item in distinctFeatures)
+            {
+                var existing = await featureTrackingRepository.Get(item);
+
+                if (existing is null)
+                {
+                    existing = new FeatureTrackingRecord
+                    {
+                        FeatureName = item,
+                        Users = [request.User]
+                    };
+                }
+                else if (existing.Users.Contains(request.User))
+                {
+                    continue;
+                }
+                else
+                {
+                    existing.Users = [.. existing.Users, request.User];
+                }
+
+                await featureTrackingRepository.Insert(existing);
+            }
+
+            return true;
         }
-
-        foreach (var item in request.Features.Distinct())
-        {
-            var existing = await featureTrackingRepository.Get(item);
-
-            if (existing is null)
-            {
-                existing = new Rfsmart.Phoenix.Licensing.FeatureTrackingRecord
-                { 
-                    FeatureName = item,
-                    Users = [request.User]
-                };
-            }
-            else if (existing.Users.Contains(request.User))
-            {
-                continue;
-            }
-            else
-            {
-                existing.Users = [.. existing.Users, request.User];
-            }
-
-            await featureTrackingRepository.Insert(existing);
-        }
-
-        return true;
     }
+
 }

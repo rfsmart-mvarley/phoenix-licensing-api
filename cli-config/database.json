@@ -12,9 +12,11 @@
         },
         "Schemas": [
             {
-                "ZoneId": "zone1",
-                "Name": "licensing",
-                "Type": "global"
+              "ZoneId": "zone1",
+              "Name": "licensing",
+              "Type": "licensing",
+              "Main": true
+
             },
             {
                 "ZoneId": "zone1",

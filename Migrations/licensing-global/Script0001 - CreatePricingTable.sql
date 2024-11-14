@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS features.pricing
+CREATE TABLE IF NOT EXISTS licensing.pricing
 (
     row_id                  int  NOT NULL GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     feature_name            text COLLATE pg_catalog."default" NOT NULL,
@@ -15,5 +15,5 @@ CREATE TABLE IF NOT EXISTS features.pricing
 
 TABLESPACE pg_default;
 
-ALTER TABLE IF EXISTS features.pricing
+ALTER TABLE IF EXISTS licensing.pricing
     OWNER to $owner$;

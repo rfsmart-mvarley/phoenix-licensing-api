@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Rfsmart.Phoenix.Licensing.Interfaces
 {
-    internal interface IFeatureTrackingService
+    public interface IFeatureTrackingService
     {
         Task<bool> AssignFeaturesToUser(AssignFeatureRequest request);
     }

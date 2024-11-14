@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 
 namespace Rfsmart.Phoenix.Licensing.Interfaces
 {
-    public interface IFeatureIssueRepository
+    public interface IFeatureDefinitionRepository
     {
-        Task<FeatureIssueRecord> Insert(FeatureIssueRecord request);
-        Task<FeatureIssueRecord?> Get(string featureName);
+        Task<FeatureDefinition> Create(FeatureDefinition featureDefinition);
+        Task<FeatureDefinition?> Get(string featureName);
     }
 }
