@@ -13,7 +13,7 @@ namespace Rfsmart.Phoenix.Licensing.Web.Controllers.Application
     {
         // POST api/<FeatureTrackingController>
         [HttpPost]
-        public async Task<ActionResult> Post([FromBody] FeatureIssueRecord request)
+        public async Task<ActionResult> Post([FromBody] FeatureIssueRequest request)
         {
             await featureIssueService.IssueFeature(request);
 

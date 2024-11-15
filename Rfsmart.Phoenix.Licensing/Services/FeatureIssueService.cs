@@ -11,7 +11,7 @@ namespace Rfsmart.Phoenix.Licensing.Services
     public class FeatureIssueService(IFeatureIssueRepository featureIssueRepository,
         IFeatureDefinitionRepository featureDefinitionRepository) : IFeatureIssueService
     {
-        public async Task<bool> IssueFeature(FeatureIssueRecord featureIssueRecord)
+        public async Task<bool> IssueFeature(FeatureIssueRequest featureIssueRecord)
         {
             var featureDefinition = await featureDefinitionRepository.Get(featureIssueRecord.FeatureName);
 

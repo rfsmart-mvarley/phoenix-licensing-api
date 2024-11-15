@@ -33,7 +33,7 @@ namespace Rfsmart.Phoenix.Licensing.Persistence
                 [FeatureIssueSort.FeatureName] = "feature_name",
             };
 
-        public async Task<FeatureIssueRecord> Insert(FeatureIssueRecord request)
+        public async Task<FeatureIssueRecord> Insert(FeatureIssueRequest request)
         {
             _logger.LogDebug("Insert {@Request}", request);
 
@@ -42,7 +42,7 @@ namespace Rfsmart.Phoenix.Licensing.Persistence
                 db =>
                     db.QuerySingleAsync<FeatureIssueRecord>(
                         $"""
-                        insert into feature_issue
+                        insert into feature_issued
                         (
                             created,
                             created_by,
@@ -90,9 +90,9 @@ namespace Rfsmart.Phoenix.Licensing.Persistence
             var featureRecord = await Exec(
                 _tenantContextProvider.Context!,
                 db =>
-                    db.QuerySingleAsync<FeatureIssueRecord>(
+                    db.QuerySingleOrDefaultAsync<FeatureIssueRecord>(
                         $"""
-                        select * from feature_issue
+                        select * from feature_issued
                         where feature_name = @featureName
                         ORDER BY created DESC LIMIT 1;
                         """,

@@ -9,7 +9,7 @@ namespace Rfsmart.Phoenix.Licensing.Interfaces
 {
     public interface IFeatureIssueRepository
     {
-        Task<FeatureIssueRecord> Insert(FeatureIssueRecord request);
+        Task<FeatureIssueRecord> Insert(FeatureIssueRequest request);
         Task<FeatureIssueRecord?> Get(string featureName);
     }
 }

@@ -9,6 +9,6 @@ namespace Rfsmart.Phoenix.Licensing.Interfaces
 {
     public interface IFeatureIssueService
     {
-        Task<bool> IssueFeature(FeatureIssueRecord featureIssueRecord);
+        Task<bool> IssueFeature(FeatureIssueRequest featureIssueRecord);
     }
 }

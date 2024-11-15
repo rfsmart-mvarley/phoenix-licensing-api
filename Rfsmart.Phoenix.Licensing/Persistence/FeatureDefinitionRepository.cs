@@ -70,21 +70,12 @@ namespace Rfsmart.Phoenix.Licensing.Persistence
                 IsActive = true,
             };
 
-            try
-            {
-                var integration = await Exec(db => db.QuerySingleAsync<FeatureDefinition>(sql, @params));
+            var integration = await Exec(db => db.QuerySingleAsync<FeatureDefinition>(sql, @params));
 
-                return integration
-                    ?? throw new DataMisalignedException(
-                        "FeatureDefinition could not be retrieved after creation"
-                    );
-            }
-            catch (Exception ex)
-            {
-                var e = ex.Message;
-                throw;
-            }
-            
+            return integration
+                ?? throw new DataMisalignedException(
+                    "FeatureDefinition could not be retrieved after creation"
+                );
         }
 
         public async Task<FeatureDefinition?> Get(string featureName)
@@ -93,7 +84,7 @@ namespace Rfsmart.Phoenix.Licensing.Persistence
 
             var featureRecord = await Exec(
                 db =>
-                    db.QuerySingleAsync<FeatureDefinition>(
+                    db.QuerySingleOrDefaultAsync<FeatureDefinition>(
                         $"""
                         select * from pricing
                         where feature_name = @featureName

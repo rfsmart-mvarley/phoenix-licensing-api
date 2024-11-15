@@ -1,6 +1,6 @@
 namespace Rfsmart.Phoenix.Licensing.Models
 {
-    public class FeatureIssueRecord
+    public record FeatureIssueRecord
     {
         /// <summary>
         /// The name of the feature being tracked.
@@ -41,7 +41,6 @@ namespace Rfsmart.Phoenix.Licensing.Models
         /// The user that last updated the record.
         /// </summary>
         public required string LastUpdatedBy { get; set; }
-
     }
 
     public enum FeatureIssueSort
@@ -49,5 +48,4 @@ namespace Rfsmart.Phoenix.Licensing.Models
         Created,
         FeatureName,
     }
-
 }
