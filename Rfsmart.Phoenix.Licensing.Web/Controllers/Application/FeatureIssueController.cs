@@ -2,7 +2,6 @@
 using Rfsmart.Phoenix.Licensing.Attributes;
 using Rfsmart.Phoenix.Licensing.Interfaces;
 using Rfsmart.Phoenix.Licensing.Models;
-// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
 namespace Rfsmart.Phoenix.Licensing.Web.Controllers.Application
 {
@@ -11,13 +10,36 @@ namespace Rfsmart.Phoenix.Licensing.Web.Controllers.Application
     [ValidateTenantContext]
     public class FeatureIssueController(IFeatureIssueService featureIssueService) : ControllerBase
     {
-        // POST api/<FeatureTrackingController>
         [HttpPost]
         public async Task<ActionResult> Post([FromBody] FeatureIssueRequest request)
         {
             await featureIssueService.IssueFeature(request);
 
             return Ok(request);
+        }
+
+        [HttpGet("{featureName}/latest")]
+        public async Task<ActionResult> Get([FromRoute] string featureName)
+        {
+            var resp = await featureIssueService.GetCurrentFeatureIssuance(featureName);
+
+            return Ok(resp);
+        }
+
+        [HttpGet("{featureName}/all")]
+        public async Task<ActionResult> GetAll([FromRoute] string featureName)
+        {
+            var resp = await featureIssueService.GetAllFeatureIssuances(featureName);
+
+            return Ok(resp);
+        }
+
+        [HttpGet]
+        public async Task<ActionResult> GetAll()
+        {
+            var resp = await featureIssueService.GetAllFeatureIssuances();
+
+            return Ok(resp);
         }
     }
 }

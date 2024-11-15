@@ -105,5 +105,44 @@ namespace Rfsmart.Phoenix.Licensing.Persistence
 
             return featureRecord;
         }
+
+        public async Task<FeatureIssueRecord[]> GetAll(string featureName)
+        {
+            _logger.LogDebug("Get {@Request}", featureName);
+
+            var featureRecords = await Exec(
+                _tenantContextProvider.Context!,
+                db =>
+                    db.QueryAsync<FeatureIssueRecord>(
+                        $"""
+                        select * from feature_issued
+                        where feature_name = @featureName
+                        """,
+                        new
+                        {
+                            featureName,
+                        }
+                    )
+            );
+
+            return featureRecords.ToArray();
+        }
+
+        public async Task<FeatureIssueRecord[]> GetAll()
+        {
+            _logger.LogDebug("Get all issued features");
+
+            var featureRecords = await Exec(
+                _tenantContextProvider.Context!,
+                db =>
+                    db.QueryAsync<FeatureIssueRecord>(
+                        $"""
+                        select * from feature_issued
+                        """
+                    )
+            );
+
+            return featureRecords.ToArray();
+        }
     }
 }

@@ -13,9 +13,19 @@ namespace Rfsmart.Phoenix.Licensing.Models
         public required string[] Users { get; set; }
 
         /// <summary>
-        /// This is the time recorded was created.
+        /// This is the time recorded was last modified.
         /// </summary>
-        public DateTime Created { get; set; }
+        public DateTime LastModified { get; set; }
+
+        /// <summary>
+        /// The user that last modified the record.
+        /// </summary>
+        public string? LastModifiedBy { get; set; }
+
+        /// <summary>
+        /// Count of all users consuming a license for this feature.
+        /// </summary>
+        public int UserCount => Users.Length;
     }
 
     public enum FeatureRecordSort

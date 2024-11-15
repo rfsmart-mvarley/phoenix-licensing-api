@@ -127,23 +127,41 @@ namespace Rfsmart.Phoenix.Licensing.Persistence
             return deletedRows;
         }
 
-        public async Task<FeatureTrackingRecord?> Get(string featureName)
+        public async Task<FeatureTrackingRecord?> Get(FeatureTrackingByFeatureRequest request)
         {
-            _logger.LogDebug("Get {@Request}", featureName);
+            _logger.LogDebug("Get {@Request}", request);
 
             var featureRecord = await Exec(
                 _tenantContextProvider.Context!,
                 db =>
-                    db.QuerySingleAsync<FeatureTrackingRecord>(
+                    db.QueryFirstOrDefaultAsync<FeatureTrackingRecord>(
                         $"""
-                        select * from feature_tracking
-                        where feature_name = @featureName
-                        ORDER BY created DESC LIMIT 1;
+                        SELECT distinct on (feature_name) * FROM feature_tracking
+                        WHERE feature_name = @FeatureName
+                        ORDER BY feature_name,created DESC 
                         """,
                         new
                         {
-                            featureName,
+                            request.FeatureName,
                         }
+                    )
+            );
+
+            return featureRecord;
+        }
+
+        public async Task<IEnumerable<FeatureTrackingRecord>> GetFeatureTrackings()
+        {
+            _logger.LogDebug("Get tracking state");
+
+            var featureRecord = await Exec(
+                _tenantContextProvider.Context!,
+                db =>
+                    db.QueryAsync<FeatureTrackingRecord>(
+                        $"""
+                        SELECT distinct on (feature_name) * FROM feature_tracking
+                        ORDER BY feature_name,created DESC 
+                        """
                     )
             );
 

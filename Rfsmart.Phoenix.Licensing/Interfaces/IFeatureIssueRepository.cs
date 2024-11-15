@@ -11,5 +11,7 @@ namespace Rfsmart.Phoenix.Licensing.Interfaces
     {
         Task<FeatureIssueRecord> Insert(FeatureIssueRequest request);
         Task<FeatureIssueRecord?> Get(string featureName);
+        Task<FeatureIssueRecord[]> GetAll(string featureName);
+        Task<FeatureIssueRecord[]> GetAll();
     }
 }

@@ -17,6 +17,8 @@ namespace Rfsmart.Phoenix.Licensing.Models
         /// </summary>
         public DateTime? DisabledTime { get; set; }
 
+        public bool Expired => DisabledTime.HasValue ? DateTime.UtcNow > DisabledTime.Value : false;
+
         /// <summary>
         /// The number of users licensed to use the feature.
         /// </summary>
@@ -35,12 +37,12 @@ namespace Rfsmart.Phoenix.Licensing.Models
         /// <summary>
         /// The time the record was last updated.
         /// </summary>
-        public required DateTime LastUpdated { get; set; }
+        public required DateTime LastModified { get; set; }
 
         /// <summary>
         /// The user that last updated the record.
         /// </summary>
-        public required string LastUpdatedBy { get; set; }
+        public required string LastModifiedBy { get; set; }
     }
 
     public enum FeatureIssueSort
