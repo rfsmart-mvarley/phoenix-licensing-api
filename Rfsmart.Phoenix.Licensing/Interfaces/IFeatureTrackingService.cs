@@ -9,9 +9,11 @@ namespace Rfsmart.Phoenix.Licensing.Interfaces
 {
     public interface IFeatureTrackingService
     {
-        Task<AssignFeatureRequest> AssignFeaturesToUser(AssignFeatureRequest request);
+        Task<FeatureTrackingByUserResponse> AssignFeaturesToUser(FeaturesRequest request);
+        Task<FeatureTrackingByUserResponse> UnassignFeaturesFromUser(FeaturesRequest request);
         Task<FeatureTrackingRecord> Get(FeatureTrackingByFeatureRequest request);
         Task<FeatureTrackingByUserResponse> Get(FeatureTrackingByUserRequest request);
-        Task<IEnumerable<FeatureTrackingRecord>> Get();
+        Task<IEnumerable<FeatureTrackingRecord>> GetConsumption();
+        Task<IEnumerable<FeatureTrackingRecord>> GetAll();
     }
 }

@@ -150,7 +150,7 @@ namespace Rfsmart.Phoenix.Licensing.Persistence
             return featureRecord;
         }
 
-        public async Task<IEnumerable<FeatureTrackingRecord>> GetFeatureTrackings()
+        public async Task<IEnumerable<FeatureTrackingRecord>> GetCurrentConsumption()
         {
             _logger.LogDebug("Get tracking state");
 
@@ -161,6 +161,24 @@ namespace Rfsmart.Phoenix.Licensing.Persistence
                         $"""
                         SELECT distinct on (feature_name) * FROM feature_tracking
                         ORDER BY feature_name,created DESC 
+                        """
+                    )
+            );
+
+            return featureRecord;
+        }
+
+        public async Task<IEnumerable<FeatureTrackingRecord>> GetAll()
+        {
+            _logger.LogDebug("Get tracking state");
+
+            var featureRecord = await Exec(
+                _tenantContextProvider.Context!,
+                db =>
+                    db.QueryAsync<FeatureTrackingRecord>(
+                        $"""
+                        SELECT * FROM feature_tracking
+                        ORDER BY created 
                         """
                     )
             );

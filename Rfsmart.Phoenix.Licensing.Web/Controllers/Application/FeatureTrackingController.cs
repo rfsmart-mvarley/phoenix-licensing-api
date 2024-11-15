@@ -2,6 +2,8 @@
 using Rfsmart.Phoenix.Licensing.Attributes;
 using Rfsmart.Phoenix.Licensing.Interfaces;
 using Rfsmart.Phoenix.Licensing.Models;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
 namespace Rfsmart.Phoenix.Licensing.Web.Controllers.Application
@@ -12,9 +14,29 @@ namespace Rfsmart.Phoenix.Licensing.Web.Controllers.Application
     public class FeatureTrackingController(IFeatureTrackingService featureTrackingService) : ControllerBase
     {
         [HttpPost]
-        public async Task<ActionResult<AssignFeatureRequest>> Post([FromBody] AssignFeatureRequest request)
+        public async Task<ActionResult<FeatureTrackingByUserResponse>> Post([FromBody] FeaturesRequest request)
         {
             return Ok(await featureTrackingService.AssignFeaturesToUser(request));
+        }
+
+        [HttpDelete]
+        public async Task<ActionResult<FeatureTrackingByUserResponse>> Delete([FromQuery] FeaturesRequest request)
+        {
+            try
+            {
+                return Ok(await featureTrackingService.UnassignFeaturesFromUser(request));
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return new ObjectResult(ex.Message)
+                {
+                    StatusCode = 500,
+                };
+            }
         }
 
         [HttpGet("byUser")]
@@ -62,7 +84,7 @@ namespace Rfsmart.Phoenix.Licensing.Web.Controllers.Application
         {
             try
             {
-                return Ok(await featureTrackingService.Get());
+                return Ok(await featureTrackingService.GetConsumption());
             }
             catch (ArgumentException ex)
             {
@@ -76,5 +98,74 @@ namespace Rfsmart.Phoenix.Licensing.Web.Controllers.Application
                 };
             }
         }
+
+        [HttpGet("graph")]
+        [Produces("image/png")]
+        public async Task<ActionResult<IEnumerable<FeatureTrackingRecord>>> GetGraph()
+        {
+            try
+            {
+                var resp = await featureTrackingService.GetAll();
+
+                var client = new HttpClient();
+
+                var colorQueue = new Queue<string>([
+                    "rgb(255, 99, 132)",
+                    "rgb(54, 162, 235)"
+                ]);
+
+                var chartObject = new ChartObject
+                {
+                    Type = ChartType.line,
+                    Data = new ChartData
+                    {
+                        Labels = resp.Select(x => x.Created.ToString()).Distinct().ToArray(),
+                        DataSets = resp.GroupBy(x => x.FeatureName).Select(x =>
+                        {
+                            var color = colorQueue.Dequeue();
+
+                            return new ChartDataSet
+                            {
+                                Label = x.Key,
+                                Data = x.Select(d => d.UserCount).ToArray(),
+                                BorderColor = color,
+                                BackgroundColor = color,
+                            };
+                        }).ToArray(),
+                        Options = new ChartOptions
+                        {
+                            Title = new ChartTitleOption
+                            {
+                                Text = "License Consumption Over Time"
+                            }
+                        }
+                    }
+                };
+
+                var jString = JsonSerializer.Serialize(chartObject, new JsonSerializerOptions
+                {
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                });
+
+                var url = string.Format("https://quickchart.io/chart?c={0}", jString);
+
+                var graph = await client.GetAsync(url);
+
+                Byte[] b = await graph.Content.ReadAsByteArrayAsync();     
+                return File(b, "image/png");
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return new ObjectResult(ex.Message)
+                {
+                    StatusCode = 500,
+                };
+            }
+        }
+
     }
 }

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Rfsmart.Phoenix.Licensing.Models
 {
-    public class AssignFeatureRequest
+    public class FeaturesRequest
     {
         public required string[] Features { get; set; }
         public required string User { get; set; }

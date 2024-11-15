@@ -25,7 +25,7 @@ namespace Rfsmart.Phoenix.Licensing.Services
             }
         }
 
-        public async Task<AssignFeatureRequest> AssignFeaturesToUser(AssignFeatureRequest request)
+        public async Task<FeatureTrackingByUserResponse> AssignFeaturesToUser(FeaturesRequest request)
         {
             var distinctFeatures = request.Features.Distinct();
 
@@ -61,7 +61,7 @@ namespace Rfsmart.Phoenix.Licensing.Services
                 await featureTrackingRepository.Insert(existing);
             }
 
-            return request;
+            return await Get(new FeatureTrackingByUserRequest { User = request.User });
         }
 
         public async Task<FeatureTrackingRecord> Get(FeatureTrackingByFeatureRequest request)
@@ -84,7 +84,7 @@ namespace Rfsmart.Phoenix.Licensing.Services
 
         public async Task<FeatureTrackingByUserResponse> Get(FeatureTrackingByUserRequest request)
         {
-            var resp = await featureTrackingRepository.GetFeatureTrackings();
+            var resp = await featureTrackingRepository.GetCurrentConsumption();
 
             var usersFeatures = resp.Aggregate(new List<string>(), (agg, x) => 
             {
@@ -103,9 +103,40 @@ namespace Rfsmart.Phoenix.Licensing.Services
             };
         }
 
-        public async Task<IEnumerable<FeatureTrackingRecord>> Get()
+        public async Task<IEnumerable<FeatureTrackingRecord>> GetConsumption()
         {
-            return await featureTrackingRepository.GetFeatureTrackings();
+            return await featureTrackingRepository.GetCurrentConsumption();
+        }
+
+        public async Task<IEnumerable<FeatureTrackingRecord>> GetAll()
+        {
+            return await featureTrackingRepository.GetAll();
+        }
+
+        public async Task<FeatureTrackingByUserResponse> UnassignFeaturesFromUser(FeaturesRequest request)
+        {
+            var distinctFeatures = request.Features.Distinct();
+
+            foreach (var item in distinctFeatures)
+            {
+                var existing = await featureTrackingRepository.Get(new FeatureTrackingByFeatureRequest
+                {
+                    FeatureName = item
+                });
+
+                if (existing is null || !existing.Users.Contains(request.User, StringComparer.InvariantCultureIgnoreCase))
+                {
+                    continue;
+                }
+                else
+                {
+                    existing.Users = existing.Users.Where(x => !x.Equals(request.User, StringComparison.InvariantCultureIgnoreCase)).ToArray();
+                }
+
+                await featureTrackingRepository.Insert(existing);
+            }
+
+            return await Get(new FeatureTrackingByUserRequest { User = request.User });
         }
     }
 }
