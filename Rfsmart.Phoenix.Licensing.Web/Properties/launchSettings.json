@@ -45,6 +45,7 @@
         "OTEL_DOTNET_AUTO_HOME": "$(TargetDir)",
         "OTEL_DOTNET_AUTO_RULE_ENGINE_ENABLED": "false",
         "OTEL_SERVICE_NAME": "licensing-web",
+        // THESE ARE NOISY AF... also not documented anywhere 
         "OTEL_DOTNET_AUTO_LOGS_CONSOLE_EXPORTER_ENABLED": "true",
         "OTEL_DOTNET_AUTO_METRICS_CONSOLE_EXPORTER_ENABLED": "true",
         "OTEL_DOTNET_AUTO_TRACES_CONSOLE_EXPORTER_ENABLED": "true"
