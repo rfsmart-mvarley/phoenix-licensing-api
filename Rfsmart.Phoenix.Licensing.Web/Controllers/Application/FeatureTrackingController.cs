@@ -100,7 +100,7 @@ namespace Rfsmart.Phoenix.Licensing.Web.Controllers.Application
         }
 
         [HttpGet("graph")]
-        [Produces("image/png")]
+        [Produces("image/png", "application/json")]
         public async Task<ActionResult<IEnumerable<FeatureTrackingRecord>>> GetGraph()
         {
             try
@@ -109,49 +109,20 @@ namespace Rfsmart.Phoenix.Licensing.Web.Controllers.Application
 
                 var client = new HttpClient();
 
-                var colorQueue = new Queue<string>([
-                    "rgb(255, 99, 132)",
-                    "rgb(54, 162, 235)"
-                ]);
+                var url = GenerateUrl(resp);
 
-                var chartObject = new ChartObject
+                var l = url.Length;
+
+                while (url.Length > 2083)
                 {
-                    Type = ChartType.line,
-                    Data = new ChartData
-                    {
-                        Labels = resp.Select(x => x.Created.ToString()).Distinct().ToArray(),
-                        DataSets = resp.GroupBy(x => x.FeatureName).Select(x =>
-                        {
-                            var color = colorQueue.Dequeue();
+                    resp = resp.Take(resp.Count() - 10);
 
-                            return new ChartDataSet
-                            {
-                                Label = x.Key,
-                                Data = x.Select(d => d.UserCount).ToArray(),
-                                BorderColor = color,
-                                BackgroundColor = color,
-                            };
-                        }).ToArray(),
-                        Options = new ChartOptions
-                        {
-                            Title = new ChartTitleOption
-                            {
-                                Text = "License Consumption Over Time"
-                            }
-                        }
-                    }
-                };
-
-                var jString = JsonSerializer.Serialize(chartObject, new JsonSerializerOptions
-                {
-                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                });
-
-                var url = string.Format("https://quickchart.io/chart?c={0}", jString);
+                    url = GenerateUrl(resp);
+                }
 
                 var graph = await client.GetAsync(url);
 
-                Byte[] b = await graph.Content.ReadAsByteArrayAsync();     
+                Byte[] b = await graph.Content.ReadAsByteArrayAsync();
                 return File(b, "image/png");
             }
             catch (ArgumentException ex)
@@ -167,5 +138,48 @@ namespace Rfsmart.Phoenix.Licensing.Web.Controllers.Application
             }
         }
 
+        private static string GenerateUrl(IEnumerable<FeatureTrackingRecord> resp)
+        {
+            var colorQueue = new Queue<string>([
+                                "rgb(255, 99, 132)",
+                    "rgb(54, 162, 235)",
+                    "rgb(50, 168, 82",
+                ]);
+
+            var chartObject = new ChartObject
+            {
+                Type = ChartType.line,
+                Data = new ChartData
+                {
+                    Labels = resp.Select(x => x.Created.ToString()).Distinct().ToArray(),
+                    DataSets = resp.GroupBy(x => x.FeatureName).Select(x =>
+                    {
+                        var color = colorQueue.Dequeue();
+
+                        return new ChartDataSet
+                        {
+                            Label = x.Key,
+                            Data = x.Select(d => d.UserCount).ToArray(),
+                            BorderColor = color,
+                            BackgroundColor = color,
+                        };
+                    }).ToArray(),
+                    Options = new ChartOptions
+                    {
+                        Title = new ChartTitleOption
+                        {
+                            Text = "License Consumption Over Time"
+                        }
+                    }
+                }
+            };
+
+            var jString = JsonSerializer.Serialize(chartObject, new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            });
+
+            return string.Format("https://quickchart.io/chart?c={0}", jString);
+        }
     }
 }
