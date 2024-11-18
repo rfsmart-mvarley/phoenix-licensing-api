@@ -9,32 +9,51 @@
     }
   },
   "profiles": {
-    "http": {
+    "http-datadog": {
       "commandName": "Project",
       "dotnetRunMessages": true,
       "launchBrowser": true,
       "launchUrl": "",
       "applicationUrl": "http://localhost:5265",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "CORECLR_ENABLE_PROFILING": "1",
+        "CORECLR_PROFILER": "{846F5F1C-F9AE-4B07-969E-05C26BC060D8}",
+        "CORECLR_PROFILER_PATH": "$(MSBuildProjectDirectory)\\$(OutputPath)\\datadog\\win-x64\\Datadog.Trace.ClrProfiler.Native.dll",
+        "DD_DOTNET_TRACER_HOME": "$(MSBuildProjectDirectory)\\$(OutputPath)\\datadog",
+        "DD_ENV": "$(Computername)",
+        "DD_SERVICE": "licensing-web",
+        "DD_LOGS_INJECTION": "true",
+        "DD_VERSION": "1.0.0",
+        "DD_TRACE_DEBUG": "true",
+        "DD_SITE": "datadoghq.com"
       }
     },
-    "https": {
+    "http-otel": {
       "commandName": "Project",
       "dotnetRunMessages": true,
       "launchBrowser": true,
       "launchUrl": "",
-      "applicationUrl": "https://localhost:7254;http://localhost:5265",
+      "applicationUrl": "http://localhost:5265",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
-      }
-    },
-    "IIS Express": {
-      "commandName": "IISExpress",
-      "launchBrowser": true,
-      "launchUrl": "",
-      "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "OTEL_LOG_LEVEL": "debug",
+        "CORECLR_ENABLE_PROFILING": "1",
+        "CORECLR_PROFILER": "{918728DD-259F-4A6A-AC2B-B85E1B658318}",
+        "CORECLR_PROFILER_PATH": "$(TargetDir)\\runtimes\\win-x64\\native\\OpenTelemetry.AutoInstrumentation.Native.dll",
+        "DOTNET_STARTUP_HOOKS": "$(TargetDir)\\OpenTelemetry.AutoInstrumentation.StartupHook.dll",
+        "OTEL_DOTNET_AUTO_HOME": "$(TargetDir)",
+        "OTEL_DOTNET_AUTO_RULE_ENGINE_ENABLED": "false",
+        "OTEL_SERVICE_NAME": "licensing-web",
+        "OTEL_DOTNET_AUTO_LOGS_CONSOLE_EXPORTER_ENABLED": "true",
+        "OTEL_DOTNET_AUTO_METRICS_CONSOLE_EXPORTER_ENABLED": "true",
+        "OTEL_DOTNET_AUTO_TRACES_CONSOLE_EXPORTER_ENABLED": "true"
+        //"OTEL_EXPORTER_OTLP_ENDPOINT": "",
+        //"OTEL_DOTNET_AUTO_LOGGER": "console",
+        //"OTEL_TRACES_EXPORTER": "console",
+        //"OTEL_METRICS_EXPORTER": "console",
+        //"OTEL_LOGS_EXPORTER": "console",
+        //"ASPNETCORE_HOSTINGSTARTUPASSEMBLIES": "OpenTelemetry.AutoInstrumentation.AspNetCoreBootstrapper",
       }
     }
   }
