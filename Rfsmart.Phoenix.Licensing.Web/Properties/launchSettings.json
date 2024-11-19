@@ -37,23 +37,24 @@
       "applicationUrl": "http://localhost:5265",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
-        "OTEL_LOG_LEVEL": "debug",
-        "CORECLR_ENABLE_PROFILING": "1",
-        "CORECLR_PROFILER": "{918728DD-259F-4A6A-AC2B-B85E1B658318}",
-        "CORECLR_PROFILER_PATH": "$(TargetDir)\\runtimes\\win-x64\\native\\OpenTelemetry.AutoInstrumentation.Native.dll",
+        // ONLY NEED THESE FOR BITWISE OPERATIONS
+        //"CORECLR_ENABLE_PROFILING": "1",
+        //"CORECLR_PROFILER": "{918728DD-259F-4A6A-AC2B-B85E1B658318}",
+        //"CORECLR_PROFILER_PATH": "$(TargetDir)\\runtimes\\win-x64\\native\\OpenTelemetry.AutoInstrumentation.Native.dll",
         "DOTNET_STARTUP_HOOKS": "$(TargetDir)\\OpenTelemetry.AutoInstrumentation.StartupHook.dll",
         "OTEL_DOTNET_AUTO_HOME": "$(TargetDir)",
-        "OTEL_DOTNET_AUTO_RULE_ENGINE_ENABLED": "false",
+        "OTEL_LOG_LEVEL": "debug",
         "OTEL_SERVICE_NAME": "licensing-web",
-        // THESE ARE NOISY AF... also not documented anywhere 
-        "OTEL_DOTNET_AUTO_LOGS_CONSOLE_EXPORTER_ENABLED": "true",
-        "OTEL_DOTNET_AUTO_METRICS_CONSOLE_EXPORTER_ENABLED": "true",
-        "OTEL_DOTNET_AUTO_TRACES_CONSOLE_EXPORTER_ENABLED": "true"
+        "OTEL_TRACES_EXPORTER": "jaeger",
+        "OTEL_METRICS_EXPORTER": "jaeger",
+        "OTEL_LOGS_EXPORTER": "jaeger",
+        // THESE ARE NOISY AF //
+        "OTEL_DOTNET_AUTO_LOGGER": "console" // flushes all metrics and logs to console
+        //"OTEL_DOTNET_AUTO_LOGS_CONSOLE_EXPORTER_ENABLED": "true",
+        //"OTEL_DOTNET_AUTO_METRICS_CONSOLE_EXPORTER_ENABLED": "true",
+        //"OTEL_DOTNET_AUTO_TRACES_CONSOLE_EXPORTER_ENABLED": "true"
+        // THESE ARE OTHER INTERESTING CONFIGS //
         //"OTEL_EXPORTER_OTLP_ENDPOINT": "",
-        //"OTEL_DOTNET_AUTO_LOGGER": "console",
-        //"OTEL_TRACES_EXPORTER": "console",
-        //"OTEL_METRICS_EXPORTER": "console",
-        //"OTEL_LOGS_EXPORTER": "console",
         //"ASPNETCORE_HOSTINGSTARTUPASSEMBLIES": "OpenTelemetry.AutoInstrumentation.AspNetCoreBootstrapper",
       }
     }
