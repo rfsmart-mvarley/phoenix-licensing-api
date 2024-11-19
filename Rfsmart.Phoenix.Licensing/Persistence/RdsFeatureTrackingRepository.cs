@@ -16,8 +16,8 @@ using System.Threading.Tasks;
 namespace Rfsmart.Phoenix.Licensing.Persistence
 {
     [ExcludeFromCodeCoverage]
-    public class FeatureTrackingRepository(
-        ILogger<FeatureTrackingRepository> _logger,
+    public class RdsFeatureTrackingRepository(
+        ILogger<RdsFeatureTrackingRepository> _logger,
         IDbConnectionProvider _connectionProvider,
         IContextProvider<UserContext> _userContextProvider,
         IContextProvider<TenantContext> _tenantContextProvider

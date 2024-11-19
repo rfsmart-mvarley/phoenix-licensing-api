@@ -16,6 +16,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Persistence\TimestreamFeatureTrackingRepository.cs~RF15389ef.TMP" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AWSSDK.TimestreamQuery" Version="3.7.401.16" />
+    <PackageReference Include="AWSSDK.TimestreamWrite" Version="3.7.400.53" />
     <PackageReference Include="Rfsmart.Phoenix.Database" Version="1.0.12" />
     <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="6.6.2" />
   </ItemGroup>

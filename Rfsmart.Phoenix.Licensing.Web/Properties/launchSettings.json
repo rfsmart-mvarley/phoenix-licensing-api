@@ -49,7 +49,7 @@
         "OTEL_METRICS_EXPORTER": "jaeger",
         "OTEL_LOGS_EXPORTER": "jaeger",
         // THESE ARE NOISY AF //
-        "OTEL_DOTNET_AUTO_LOGGER": "console" // flushes all metrics and logs to console
+        //"OTEL_DOTNET_AUTO_LOGGER": "console" // flushes all metrics and logs to console
         //"OTEL_DOTNET_AUTO_LOGS_CONSOLE_EXPORTER_ENABLED": "true",
         //"OTEL_DOTNET_AUTO_METRICS_CONSOLE_EXPORTER_ENABLED": "true",
         //"OTEL_DOTNET_AUTO_TRACES_CONSOLE_EXPORTER_ENABLED": "true"

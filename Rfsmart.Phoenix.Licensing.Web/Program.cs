@@ -15,6 +15,9 @@ using Rfsmart.Phoenix.Api.Config;
 using Rfsmart.Phoenix.Api.Healthchecks;
 using Rfsmart.Phoenix.Common.Config;
 using Rfsmart.Phoenix.Configuration;
+using Rfsmart.Phoenix.Licensing.Web.Auth;
+using Rfsmart.Phoenix.Licensing.Models;
+using Rfsmart.Phoenix.Licensing.Extensions;
 
 
 Log.Logger = new LoggerConfiguration()
@@ -68,14 +71,14 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddRfsmartJwtAuthentication(
     new()
     {
-        UseCloudConfig = () => builder.Environment.IsProduction()
+        UseCloudConfig = () => builder.Environment.IsProduction(),
+        ConfigureAuthorizationOptions = (authorization, sp) =>
+        {
+            var auth0 = sp.GetRequiredService<IOptionsService<Auth0Options>>().Value;
+            authorization.AddLicensingPolicies(auth0.Issuer);
+        },
     }
 );
-
-//builder
-//    .Services.AddOptions<LocalStackOptions>()
-//    .AddService()
-//    .BindConfiguration(LocalStackOptions.Position);
 
 builder
     .Services.AddOptions<DeployOptions>()
@@ -85,13 +88,13 @@ builder
 builder.Services.AddTenantContext();
 builder.Services.AddUserContext();
 
-//builder.Services.AddAwsServices(builder.Configuration);
+builder.Services.AddAwsServices(builder);
 builder.Services.AddData(builder.Configuration);
 
 builder.Services.AddScoped<IFeatureDefinitionRepository, FeatureDefinitionRepository>();
 builder.Services.AddScoped<IFeatureIssueRepository, FeatureIssueRepository>();
 builder.Services.AddScoped<IFeatureIssueService, FeatureIssueService>();
-builder.Services.AddScoped<IFeatureTrackingRepository, FeatureTrackingRepository>();
+builder.Services.AddScoped<IFeatureTrackingRepository, TimestreamFeatureTrackingRepository>();
 builder.Services.AddScoped<IFeatureTrackingService, FeatureTrackingService>();
 
 var app = builder.Build();
