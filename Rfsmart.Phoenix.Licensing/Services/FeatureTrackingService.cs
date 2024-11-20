@@ -1,4 +1,5 @@
-﻿using Rfsmart.Phoenix.Licensing.Interfaces;
+﻿using Amazon.Runtime.Internal;
+using Rfsmart.Phoenix.Licensing.Interfaces;
 using Rfsmart.Phoenix.Licensing.Models;
 using System;
 
@@ -8,7 +9,7 @@ namespace Rfsmart.Phoenix.Licensing.Services
         IFeatureTrackingRepository featureTrackingRepository,
     IFeatureIssueRepository featureIssueRepository) : IFeatureTrackingService
     {
-        private async Task ConfirmFeautreExistsAndIsLicensed(string featureName)
+        private async Task<(FeatureDefinition, FeatureIssueRecord)> ConfirmFeautreExistsAndIsLicensed(string featureName)
         {
             var featureDefinition = await featureDefinitionRepository.Get(featureName);
 
@@ -23,6 +24,8 @@ namespace Rfsmart.Phoenix.Licensing.Services
             {
                 throw new ArgumentException($"Feature {featureName} is not licensed!");
             }
+
+            return (featureDefinition, issue);
         }
 
         public async Task<FeatureTrackingByUserResponse> AssignFeaturesToUser(FeaturesRequest request)
@@ -137,6 +140,13 @@ namespace Rfsmart.Phoenix.Licensing.Services
             }
 
             return await Get(new FeatureTrackingByUserRequest { User = request.User });
+        }
+
+        public async Task<IEnumerable<FeatureTrackingRecord>> GetOveragesByFeature(string feature)
+        {
+            var res = await ConfirmFeautreExistsAndIsLicensed(feature);
+
+            return await featureTrackingRepository.GetOveragesByFeature(feature, res.Item2.LicensedUsers);
         }
     }
 }

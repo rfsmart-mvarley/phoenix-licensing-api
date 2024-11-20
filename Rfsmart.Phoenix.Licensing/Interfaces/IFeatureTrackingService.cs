@@ -15,5 +15,6 @@ namespace Rfsmart.Phoenix.Licensing.Interfaces
         Task<FeatureTrackingByUserResponse> Get(FeatureTrackingByUserRequest request);
         Task<IEnumerable<FeatureTrackingRecord>> GetConsumption();
         Task<IEnumerable<FeatureTrackingRecord>> GetAll();
+        Task<IEnumerable<FeatureTrackingRecord>> GetOveragesByFeature(string feature);
     }
 }

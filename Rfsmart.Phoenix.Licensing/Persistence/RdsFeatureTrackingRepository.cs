@@ -178,8 +178,33 @@ namespace Rfsmart.Phoenix.Licensing.Persistence
                     db.QueryAsync<FeatureTrackingRecord>(
                         $"""
                         SELECT * FROM feature_tracking
-                        ORDER BY created 
+                        ORDER BY row_id 
                         """
+                    )
+            );
+
+            return featureRecord;
+        }
+
+        public async Task<IEnumerable<FeatureTrackingRecord>> GetOveragesByFeature(string featureName, int max)
+        {
+            _logger.LogDebug("Get overages");
+
+            var featureRecord = await Exec(
+                _tenantContextProvider.Context!,
+                db =>
+                    db.QueryAsync<FeatureTrackingRecord>(
+                        $"""
+                        SELECT * FROM feature_tracking
+                        WHERE feature_name = @FeatureName
+                        AND cardinality(users) > @Max
+                        ORDER BY row_id
+                        """,
+                        new
+                        {
+                            FeatureName = featureName,
+                            Max = max,
+                        }
                     )
             );
 

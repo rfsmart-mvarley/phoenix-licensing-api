@@ -10,6 +10,7 @@ namespace Rfsmart.Phoenix.Licensing.Interfaces
 {
     public interface IFeatureTrackingRepository
     {
+        Task<IEnumerable<FeatureTrackingRecord>> GetOveragesByFeature(string featureName, int max);
         Task<FeatureTrackingRecord?> Get(FeatureTrackingByFeatureRequest request);
         Task<IEnumerable<FeatureTrackingRecord>> GetCurrentConsumption();
         Task<IEnumerable<FeatureTrackingRecord>> GetAll();  

@@ -287,6 +287,12 @@ tenant='{tenant}' and
 users like '%{user}%'
 order by time desc limit 1";
 
+        private static string OVERAGES_BY_FEATURE(string org, string tenant, string feature, int count) => $@"select * from ""{s_dbName}"".""{s_tableName}""
+where organization='{org}' and
+tenant='{tenant}' and
+feature='{feature}'
+count > '{count}'";
+
         public TimestreamFeatureTrackingRepository(IContextProvider<TenantContext> contextProvider,
             IAmazonTimestreamWrite writeClient,
             IAmazonTimestreamQuery queryClient,
@@ -316,7 +322,7 @@ order by time desc limit 1";
 
                 if (resp != null)
                 {
-                    var users = ParseQueryResultSingleOrDefault(resp, s_users);
+                    var users = ParseQueryResultSingleColumn(resp, s_users);
 
                     return new FeatureTrackingRecord
                     {
@@ -361,7 +367,7 @@ order by time desc limit 1";
 
                 if (resp != null)
                 {
-                    return ParseQueryResultSingleOrDefault(resp, x =>
+                    return ParseQueryResults(resp, x =>
                     {
                         var feature = resp.ColumnInfo.FirstOrDefault(x => x.Name.Equals("feature", StringComparison.InvariantCultureIgnoreCase));
                         var users = resp.ColumnInfo.FirstOrDefault(x => x.Name.Equals("users", StringComparison.InvariantCultureIgnoreCase));
@@ -429,6 +435,57 @@ order by time desc limit 1";
             throw new NotImplementedException();
         }
 
+        public async Task<IEnumerable<FeatureTrackingRecord>> GetOveragesByFeature(string featureName, int max)
+        {
+            var query = OVERAGES_BY_FEATURE(_contextProvider.Context!.Organization!, 
+                _contextProvider.Context!.Tenant!,
+                featureName,
+                max
+            );
+
+            try
+            {
+                var resp = await RunQueryAsync(query);
+
+                if (resp != null)
+                {
+                    return ParseQueryResults(resp, x =>
+                    {
+                        var feature = resp.ColumnInfo.FirstOrDefault(x => x.Name.Equals("feature", StringComparison.InvariantCultureIgnoreCase));
+                        var users = resp.ColumnInfo.FirstOrDefault(x => x.Name.Equals("users", StringComparison.InvariantCultureIgnoreCase));
+
+                        var featureName = x.Data[resp.ColumnInfo.IndexOf(feature)].ScalarValue;
+                        var usersList = x.Data[resp.ColumnInfo.IndexOf(users)].ScalarValue;
+
+                        return new FeatureTrackingRecord
+                        {
+                            FeatureName = featureName,
+                            Users = usersList.Split(',').ToArray(),
+                        };
+                    });
+                }
+
+                throw new Exception("Response was null");
+            }
+            catch (Amazon.TimestreamQuery.Model.ValidationException ex)
+            {
+                if (ex.Message.Contains("Column") && ex.Message.Contains("does not exist"))
+                {
+
+                }
+
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                //await CreateDatabase();
+
+                //var resp = await RunQueryAsync(query);
+                throw;
+            }
+        }
+
         private async Task CreateDatabase()
         {
             _logger.LogInformation("Creating Database");
@@ -449,6 +506,8 @@ order by time desc limit 1";
             catch (ConflictException)
             {
                 _logger.LogError("Database already exists.");
+
+                await CreateTable();
             }
             catch (Exception e)
             {
@@ -649,7 +708,7 @@ order by time desc limit 1";
             }
         }
 
-        private IEnumerable<T> ParseQueryResultSingleOrDefault<T>(QueryResponse response, Func<Row, T> mapper)
+        private IEnumerable<T> ParseQueryResults<T>(QueryResponse response, Func<Row, T> mapper)
         {
             if (response.Rows.Count <= 0)
             {
@@ -659,7 +718,7 @@ order by time desc limit 1";
             return response.Rows.Select(mapper);
         }
 
-        private string? ParseQueryResultSingleOrDefault(QueryResponse response, string columnName)
+        private string? ParseQueryResultSingleColumn(QueryResponse response, string columnName)
         {
             if (response.Rows.Count <= 0)
             {
@@ -772,5 +831,7 @@ order by time desc limit 1";
         {
             return $"[{arrayValues.Select(value => ParseDatum(arrayColumnInfo, value)).Aggregate((current, next) => current + "," + next)}]";
         }
+
+
     }
 }

@@ -99,6 +99,12 @@ namespace Rfsmart.Phoenix.Licensing.Web.Controllers.Application
             }
         }
 
+        [HttpGet("overages/{feature}")]
+        public async Task<ActionResult<IEnumerable<FeatureTrackingRecord>>> GetOveragesByFeature(string feature)
+        {
+            return Ok(await featureTrackingService.GetOveragesByFeature(feature));
+        }
+
         [HttpGet("graph")]
         [Produces("image/png", "application/json")]
         public async Task<ActionResult<IEnumerable<FeatureTrackingRecord>>> GetGraph()
