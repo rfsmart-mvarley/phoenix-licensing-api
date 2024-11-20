@@ -17,6 +17,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using MeasureValueType = Amazon.TimestreamWrite.MeasureValueType;
 using ConflictException = Amazon.TimestreamQuery.Model.ConflictException;
+using Amazon.Runtime.Internal;
 
 namespace Rfsmart.Phoenix.Licensing.Persistence
 {
@@ -31,6 +32,8 @@ namespace Rfsmart.Phoenix.Licensing.Persistence
         private readonly long _memoryStoreRetentionPeriodInHours = 24;
         private static string s_dbName = "licensing";
         private static string s_tableName = "feature-tracking";
+        //private static string s_count = "count";
+        private static string s_users = "users";
         private readonly IAmazonTimestreamWrite _writeClient;
         private readonly IAmazonTimestreamQuery _queryClient;
         private readonly ILogger<TimestreamFeatureTrackingRepository> _logger;
@@ -267,6 +270,23 @@ WHERE time < from_milliseconds(1636685271872)
 GROUP BY {s_dim_organization}, {s_dim_tenant}, {s_dim_feature}
 ORDER BY feature, time DESC";
 
+        private static string MAX_BY_FEATURE(string org, string tenant, string feature) => $@"select feature, max_by(users, time) as users from ""{s_dbName}"".""{s_tableName}""
+where organization='{org}' and
+tenant='{tenant}' and
+feature='{feature}'
+group by feature";
+
+        private static string MAX_ACROSS_FEATURES(string org, string tenant) => $@"select feature, max_by(users, time) as users from ""{s_dbName}"".""{s_tableName}""
+where organization='{org}' and
+tenant='{tenant}'
+group by feature";
+
+        private static string BY_USER(string org, string tenant, string feature, string user) => $@"select * from ""{s_dbName}"".""{s_tableName}""
+where organization='{org}' and
+tenant='{tenant}' and
+users like '%{user}%'
+order by time desc limit 1";
+
         public TimestreamFeatureTrackingRepository(IContextProvider<TenantContext> contextProvider,
             IAmazonTimestreamWrite writeClient,
             IAmazonTimestreamQuery queryClient,
@@ -288,21 +308,40 @@ ORDER BY feature, time DESC";
 
         public async Task<FeatureTrackingRecord?> Get(FeatureTrackingByFeatureRequest request)
         {
-            var query = QUERY_13(_contextProvider.Context!.Organization!, _contextProvider.Context!.Tenant!, request.FeatureName);
+            var query = MAX_BY_FEATURE(_contextProvider.Context!.Organization!, _contextProvider.Context!.Tenant!, request.FeatureName);
 
-            await Task.Run(() => { });
-            //try
-            //{
-            //    var resp = await RunQueryAsync(query);
-            //}
-            //catch (Exception ex)
-            //{
-            //    _logger.LogError(ex.Message);
-            //    await CreateDatabase();
+            try
+            {
+                var resp = await RunQueryAsync(query);
 
-            //    var resp = await RunQueryAsync(query);
-            //    throw;
-            //}
+                if (resp != null)
+                {
+                    var users = ParseQueryResultSingleOrDefault(resp, s_users);
+
+                    return new FeatureTrackingRecord
+                    {
+                        FeatureName = request.FeatureName,
+                        Users = users!.Split(',').ToArray()
+                    };
+                }
+            }
+            catch (Amazon.TimestreamQuery.Model.ValidationException ex)
+            {
+                if (ex.Message.Contains("Column") && ex.Message.Contains("does not exist"))
+                {
+                    return null;
+                }
+
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                //await CreateDatabase();
+
+                //var resp = await RunQueryAsync(query);
+                throw;
+            }
 
             return null;
         }
@@ -312,9 +351,51 @@ ORDER BY feature, time DESC";
             throw new NotImplementedException();
         }
 
-        public Task<IEnumerable<FeatureTrackingRecord>> GetCurrentConsumption()
+        public async Task<IEnumerable<FeatureTrackingRecord>> GetCurrentConsumption()
         {
-            throw new NotImplementedException();
+            var query = MAX_ACROSS_FEATURES(_contextProvider.Context!.Organization!, _contextProvider.Context!.Tenant!);
+
+            try
+            {
+                var resp = await RunQueryAsync(query);
+
+                if (resp != null)
+                {
+                    return ParseQueryResultSingleOrDefault(resp, x =>
+                    {
+                        var feature = resp.ColumnInfo.FirstOrDefault(x => x.Name.Equals("feature", StringComparison.InvariantCultureIgnoreCase));
+                        var users = resp.ColumnInfo.FirstOrDefault(x => x.Name.Equals("users", StringComparison.InvariantCultureIgnoreCase));
+
+                        var featureName = x.Data[resp.ColumnInfo.IndexOf(feature)].ScalarValue;
+                        var usersList = x.Data[resp.ColumnInfo.IndexOf(users)].ScalarValue;
+
+                        return new FeatureTrackingRecord
+                        {
+                            FeatureName = featureName,
+                            Users = usersList.Split(',').ToArray(),
+                        };
+                    });
+                }
+
+                throw new Exception("Response was null");
+            }
+            catch (Amazon.TimestreamQuery.Model.ValidationException ex)
+            {
+                if (ex.Message.Contains("Column") && ex.Message.Contains("does not exist"))
+                {
+                    
+                }
+
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                //await CreateDatabase();
+
+                //var resp = await RunQueryAsync(query);
+                throw;
+            }
         }
 
         public async Task<FeatureTrackingRecord> Insert(FeatureTrackingRecord request)
@@ -413,22 +494,33 @@ ORDER BY feature, time DESC";
             DateTimeOffset now = DateTimeOffset.UtcNow;
             string currentTimeString = (now.ToUnixTimeMilliseconds()).ToString();
 
-            List<Dimension> dimensions = new List<Dimension>{
+            List<Dimension> dimensions = new List<Dimension> {
                 new Dimension { Name = s_dim_organization, Value = _contextProvider.Context!.Organization },
                 new Dimension { Name = s_dim_tenant, Value = _contextProvider.Context!.Tenant },
-                new Dimension { Name = s_dim_feature, Value = request.FeatureName }
+                new Dimension { Name = s_dim_feature, Value = request.FeatureName },
             };
-
-            // host name = feature
-            // measure name = consumed
 
             var userConsumption = new Record
             {
                 Dimensions = dimensions,
-                MeasureName = s_measure_measureName,
-                MeasureValue = request.Users.Length.ToString(),
-                MeasureValueType = MeasureValueType.DOUBLE,
-                Time = currentTimeString
+                MeasureName = "user_metrics",
+                MeasureValues = new List<MeasureValue>
+                {
+                    new MeasureValue
+                    {
+                        Name = "count",
+                        Value = request.UserCount.ToString(),
+                        Type = MeasureValueType.DOUBLE,
+                    },
+                    new MeasureValue
+                    {
+                        Name = "users",
+                        Value = string.Join(',', request.Users),
+                        Type = MeasureValueType.VARCHAR,
+                    },
+                },
+                MeasureValueType = MeasureValueType.MULTI,
+                Time = currentTimeString,
             };
 
             List<Record> records = new List<Record> {
@@ -557,9 +649,43 @@ ORDER BY feature, time DESC";
             }
         }
 
-        private void ParseQueryResult(QueryResponse response)
+        private IEnumerable<T> ParseQueryResultSingleOrDefault<T>(QueryResponse response, Func<Row, T> mapper)
+        {
+            if (response.Rows.Count <= 0)
+            {
+                throw new Exception("No rows available to convert!");
+            }
+
+            return response.Rows.Select(mapper);
+        }
+
+        private string? ParseQueryResultSingleOrDefault(QueryResponse response, string columnName)
+        {
+            if (response.Rows.Count <= 0)
+            {
+                return default;
+            }
+            else if (response.Rows.Count > 1)
+            {
+                throw new Exception("Too many rows returned");
+            }
+
+            var column = response.ColumnInfo.FirstOrDefault(x => x.Name.Equals(columnName, StringComparison.InvariantCultureIgnoreCase));
+
+            if (column is null)
+            {
+                throw new Exception("Incorrect column for search");
+            }
+
+            var data = response.Rows[0].Data[response.ColumnInfo.IndexOf(column)];
+
+            return data?.ScalarValue;
+        }
+
+        private List<string> ParseQueryResult(QueryResponse response)
         {
             List<ColumnInfo> columnInfo = response.ColumnInfo;
+            List<string> rowInfo = new List<string>();
             var options = new JsonSerializerOptions
             {
                 DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
@@ -573,8 +699,12 @@ ORDER BY feature, time DESC";
 
             foreach (Row row in rows)
             {
-                _logger.LogInformation(ParseRow(columnInfo, row));
+                var parsedRow = ParseRow(columnInfo, row);
+                rowInfo.Add(parsedRow);
+                _logger.LogInformation(parsedRow);
             }
+
+            return rowInfo;
         }
 
         private string ParseRow(List<ColumnInfo> columnInfo, Row row)
