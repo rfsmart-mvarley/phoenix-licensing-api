@@ -18,12 +18,14 @@ public class Tests
     [Test]
     public void Test1()
     {
-        var trackedRecords = DataGenerator.Generate(1000, 30);
+        var trackedRecords = DataGenerator.Generate(1000, 15);
 
         //var result = JsonSerializer.Serialize(trackedRecords.OrderBy(x => x.Created));
 
         var features = trackedRecords.Select(x => x.FeatureName).Distinct();
-        WriteCsvForExcelCharts(trackedRecords.OrderBy(x => x.Created), "C:\\Dev\\testdata.csv", features.ToArray());
+        WriteCsv(trackedRecords.OrderBy(x => x.Created), "C:\\Dev\\testdata-chart.csv");
+        WriteCsvForExcelCharts(trackedRecords.OrderBy(x => x.Created), "C:\\Dev\\testdata-chart.csv", features.ToArray());
+        WriteCsvForTimestreamIngestion(trackedRecords.OrderBy(x => x.Created), "C:\\Dev\\testdata-timestream.csv");
     }
 
     public static void WriteCsv<T>(IOrderedEnumerable<T> items, string path)
@@ -100,6 +102,58 @@ public class Tests
                     }
 
                     return "0";
+                }).ToArray();
+
+                processed.Add(item);
+                writer.WriteLine(string.Join(",", columnValues));
+            }
+        }
+    }
+
+    public static void WriteCsvForTimestreamIngestion(IOrderedEnumerable<FeatureTrackingRecord> items, string path)
+    {
+        // time, feature, organization, tenant, measure_name, count, users
+        // 
+        using (var writer = new StreamWriter(path))
+        {
+            var columns = new List<string>(["time","feature","organization","tenant","measure_name","count","users"]);
+
+            writer.WriteLine(string.Join(",", columns));
+
+            // empty,Receiving,Advanced Receiving,Picking
+            var processed = new List<FeatureTrackingRecord>();
+
+            // Writing data
+            foreach (var item in items)
+            {
+                string[] columnValues = columns.Select((col, index) =>
+                {
+                    switch (col)
+                    {
+                        case "time":
+                            return item.Created.ToUnixTimeMilliseconds().ToString();
+
+                        case "feature":
+                            return item.FeatureName;
+
+                        case "organization":
+                            return "rfsmart";
+
+                        case "tenant":
+                            return "dev";
+
+                        case "measure_name":
+                            return "user_metrics";
+
+                        case "count":
+                            return item.UserCount.ToString();
+
+                        case "users":
+                            return $"\"{string.Join(',', item.Users)}\"";
+
+                        default:
+                            return "";
+                    }
                 }).ToArray();
 
                 processed.Add(item);

@@ -11,9 +11,9 @@ namespace Rfsmart.Phoenix.Licensing.Helpers
     {
         public static List<FeatureTrackingRecord> Generate(int totalRecords = 5000, int elapsedDays = 30)
         {
-            var startTime = DateTime.UtcNow.AddDays(elapsedDays * -1);
-            var endTime = DateTime.UtcNow;
-            var timeSpan = endTime - startTime;
+            var startTime = DateTimeOffset.UtcNow.AddDays(elapsedDays * -1);
+            var endTime = DateTimeOffset.UtcNow;
+            var timeSpan = endTime.ToUnixTimeMilliseconds() - startTime.ToUnixTimeMilliseconds();
 
             string[] actions = ["Add", "Remove"];
             string[] allUsers = ["Bob", "Gary", "Jeremy", "Steve", "Jenny", "Greg", "Heather", "Emma", "Kris", "Sharon", "Kristan", "Katie", "Vicky"];
@@ -45,9 +45,8 @@ namespace Rfsmart.Phoenix.Licensing.Helpers
             var timeStamps = Enumerable.Range(0, totalRecords).Select(x =>
             {
                 var randomDate = new Random();
-
-                TimeSpan newSpan = new TimeSpan(0, randomDate.Next(0, (int)timeSpan.TotalMinutes), 0);
-                return startTime + newSpan;
+                var next = randomDate.NextInt64(startTime.ToUnixTimeMilliseconds(), endTime.ToUnixTimeMilliseconds());
+                return DateTimeOffset.FromUnixTimeMilliseconds(next);
             }).OrderBy(x => x).ToList();
 
             foreach (var time in timeStamps)

@@ -28,8 +28,8 @@ namespace Rfsmart.Phoenix.Licensing.Persistence
         private static string s_dim_tenant = "tenant";
         private static string s_dim_feature = "feature";
 
-        private readonly long _magneticStoreRetentionPeriodInDays = 10;
-        private readonly long _memoryStoreRetentionPeriodInHours = 24;
+        private readonly long _magneticStoreRetentionPeriodInDays = 365;
+        private readonly long _memoryStoreRetentionPeriodInDays = 30;
         private static string s_dbName = "licensing";
         private static string s_tableName = "feature-tracking";
         //private static string s_count = "count";
@@ -528,7 +528,7 @@ count > '{count}'";
                     RetentionProperties = new RetentionProperties
                     {
                         MagneticStoreRetentionPeriodInDays = _magneticStoreRetentionPeriodInDays,
-                        MemoryStoreRetentionPeriodInHours = _memoryStoreRetentionPeriodInHours,
+                        MemoryStoreRetentionPeriodInHours = _memoryStoreRetentionPeriodInDays * 24,
                     }
                 };
 
@@ -604,65 +604,6 @@ count > '{count}'";
             catch (Exception e)
             {
                 _logger.LogError("Write records failure:" + e.ToString());
-            }
-        }
-
-        public async Task WriteRecordsWithCommonAttributes()
-        {
-            _logger.LogInformation("Writing records with common attributes");
-
-            DateTimeOffset now = DateTimeOffset.UtcNow;
-            string currentTimeString = (now.ToUnixTimeMilliseconds()).ToString();
-
-            List<Dimension> dimensions = new List<Dimension>{
-                new Dimension { Name = "region", Value = "us-east-1" },
-                new Dimension { Name = "az", Value = "az1" },
-                new Dimension { Name = "hostname", Value = "host1" }
-            };
-
-            var commonAttributes = new Record
-            {
-                Dimensions = dimensions,
-                MeasureValueType = MeasureValueType.DOUBLE,
-                Time = currentTimeString
-            };
-
-            var cpuUtilization = new Record
-            {
-                MeasureName = "cpu_utilization",
-                MeasureValue = "13.6"
-            };
-
-            var memoryUtilization = new Record
-            {
-                MeasureName = "memory_utilization",
-                MeasureValue = "40"
-            };
-
-
-            List<Record> records = new List<Record>();
-            records.Add(cpuUtilization);
-            records.Add(memoryUtilization);
-
-            try
-            {
-                var writeRecordsRequest = new WriteRecordsRequest
-                {
-                    DatabaseName = s_dbName,
-                    TableName = s_tableName,
-                    Records = records,
-                    CommonAttributes = commonAttributes
-                };
-                WriteRecordsResponse response = await _writeClient.WriteRecordsAsync(writeRecordsRequest);
-                _logger.LogInformation($"Write records status code: {response.HttpStatusCode.ToString()}");
-            }
-            catch (RejectedRecordsException e)
-            {
-                PrintRejectedRecordsException(e);
-            }
-            catch (Exception e)
-            {
-                _logger.LogInformation("Write records failure:" + e.ToString());
             }
         }
 

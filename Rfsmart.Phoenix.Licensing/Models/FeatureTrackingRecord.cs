@@ -15,7 +15,7 @@ namespace Rfsmart.Phoenix.Licensing.Models
         /// <summary>
         /// This is the time recorded was created.
         /// </summary>
-        public DateTime Created { get; set; }
+        public DateTimeOffset Created { get; set; }
 
         /// <summary>
         /// Count of all users consuming a license for this feature.
