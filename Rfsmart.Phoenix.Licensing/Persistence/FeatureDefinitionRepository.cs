@@ -15,10 +15,9 @@ using System.Threading.Tasks;
 namespace Rfsmart.Phoenix.Licensing.Persistence
 {
     public class FeatureDefinitionRepository(
-        IDbConnectionProvider connectionProvider,
-        IContextProvider<UserContext> userContextProvider,
+        RepositoryOptions<FeatureDefinitionRepository> repositoryOptions,
         ILogger<FeatureDefinitionRepository> logger
-    ) : GlobalRepositoryBase(connectionProvider, userContextProvider, logger), IFeatureDefinitionRepository
+    ) : GlobalRepositoryBase(repositoryOptions), IFeatureDefinitionRepository
     {
         protected override string DefaultSchema => "licensing";
 

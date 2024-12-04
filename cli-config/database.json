@@ -10,20 +10,25 @@
                 "Database": "zone1"
             }
         },
-        "Schemas": [
-            {
-              "ZoneId": "zone1",
-              "Name": "licensing",
-              "Type": "licensing",
-              "Main": true
+      "Schemas": [
+        {
+          "ZoneId": "zone1",
+          "Name": "licensing",
+          "Type": "licensing",
+          "Main": true
 
-            },
-            {
-                "ZoneId": "zone1",
-                "Name": "rfsmart_dev",
-                "Type": "tenant",
-                "Main": true
-            }
-        ]
+        },
+        {
+          "ZoneId": "zone1",
+          "Name": "rfsmart_dev",
+          "Type": "tenant",
+          "Main": true
+        },
+        {
+          "ZoneId": "zone1",
+          "Name": "accounts",
+          "Type": "accounts"
+        }
+      ]
     }
 }

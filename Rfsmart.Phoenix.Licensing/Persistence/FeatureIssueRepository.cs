@@ -18,10 +18,8 @@ namespace Rfsmart.Phoenix.Licensing.Persistence
     [ExcludeFromCodeCoverage]
     public class FeatureIssueRepository(
         ILogger<FeatureIssueRepository> _logger,
-        IDbConnectionProvider _connectionProvider,
-        IContextProvider<UserContext> _userContextProvider,
-        IContextProvider<TenantContext> _tenantContextProvider
-    ) : TenantRepositoryBase(_connectionProvider, _userContextProvider, _logger), IFeatureIssueRepository
+        RepositoryOptions<FeatureIssueRepository> repositoryOptions
+    ) : TenantRepositoryBase(repositoryOptions), IFeatureIssueRepository
     {
         private const string SelectColumnList =
             "created,created_by,last_modified,last_modified_by,feature_name,enabled_time,disabled_time,licensed_users";
@@ -38,7 +36,7 @@ namespace Rfsmart.Phoenix.Licensing.Persistence
             _logger.LogDebug("Insert {@Request}", request);
 
             var featureRecord = await Exec(
-                _tenantContextProvider.Context!,
+                repositoryOptions.TenantContextProvider!.Context!,
                 db =>
                     db.QuerySingleAsync<FeatureIssueRecord>(
                         $"""
@@ -88,7 +86,7 @@ namespace Rfsmart.Phoenix.Licensing.Persistence
             _logger.LogDebug("Get {@Request}", featureName);
 
             var featureRecord = await Exec(
-                _tenantContextProvider.Context!,
+                repositoryOptions.TenantContextProvider!.Context!,
                 db =>
                     db.QuerySingleOrDefaultAsync<FeatureIssueRecord>(
                         $"""
@@ -111,7 +109,7 @@ namespace Rfsmart.Phoenix.Licensing.Persistence
             _logger.LogDebug("Get {@Request}", featureName);
 
             var featureRecords = await Exec(
-                _tenantContextProvider.Context!,
+                repositoryOptions.TenantContextProvider!.Context!,
                 db =>
                     db.QueryAsync<FeatureIssueRecord>(
                         $"""
@@ -133,7 +131,7 @@ namespace Rfsmart.Phoenix.Licensing.Persistence
             _logger.LogDebug("Get all issued features");
 
             var featureRecords = await Exec(
-                _tenantContextProvider.Context!,
+                repositoryOptions.TenantContextProvider!.Context!,
                 db =>
                     db.QueryAsync<FeatureIssueRecord>(
                         $"""

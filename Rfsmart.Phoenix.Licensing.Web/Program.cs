@@ -18,6 +18,7 @@ using Rfsmart.Phoenix.Configuration;
 using Rfsmart.Phoenix.Licensing.Web.Auth;
 using Rfsmart.Phoenix.Licensing.Models;
 using Rfsmart.Phoenix.Licensing.Extensions;
+using Rfsmart.Phoenix.Common.Context;
 
 
 Log.Logger = new LoggerConfiguration()
@@ -37,6 +38,11 @@ builder
             JsonIgnoreCondition.WhenWritingNull;
         x.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
     });
+
+builder.Services.AddScoped<IContextProvider<UserContext>>(sp => new ContextProvider<UserContext>
+{
+    Context = new UserContext { UserName = "LICENSING_API", OrganizationCode = "RFSMART" },
+});
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -86,7 +92,7 @@ builder
     .BindConfiguration(DeployOptions.Position);
 
 builder.Services.AddTenantContext();
-builder.Services.AddUserContext();
+//builder.Services.AddUserContext();
 
 builder.Services.AddAwsServices(builder);
 builder.Services.AddData(builder.Configuration);
@@ -94,7 +100,7 @@ builder.Services.AddData(builder.Configuration);
 builder.Services.AddScoped<IFeatureDefinitionRepository, FeatureDefinitionRepository>();
 builder.Services.AddScoped<IFeatureIssueRepository, FeatureIssueRepository>();
 builder.Services.AddScoped<IFeatureIssueService, FeatureIssueService>();
-builder.Services.AddScoped<IFeatureTrackingRepository, TimestreamFeatureTrackingRepository>();
+builder.Services.AddScoped<IFeatureTrackingRepository, RdsFeatureTrackingRepository>();
 builder.Services.AddScoped<IFeatureTrackingService, FeatureTrackingService>();
 
 var app = builder.Build();
@@ -118,12 +124,13 @@ app.UseHealthChecks(
         c.RoutePrefix = string.Empty;
     })
     .UseHttpsRedirection()
-    .UseTenantContext().UseUserContext()
+    .UseTenantContext()
+    //.UseUserContext()
     .UseMiddleware<TenantContextValidationMiddleware>()
     .UseRequestLogging()
     .UseAuthentication()
     .UseTenantContext()
-    .UseUserContext()
+    //.UseUserContext()
     .UseAuthorization();
 
 app.MapControllers();

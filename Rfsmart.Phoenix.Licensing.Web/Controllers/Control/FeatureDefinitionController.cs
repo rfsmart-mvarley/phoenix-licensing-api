@@ -8,7 +8,6 @@ namespace Rfsmart.Phoenix.Licensing.Web.Controllers.Control
 {
     [Route("[controller]")]
     [ApiController]
-    [Authorize]
     public class FeatureDefinitionController(IFeatureDefinitionRepository featureDefinitionRepository) : ControllerBase
     {
         // GET api/<FeatureTrackingController>/5

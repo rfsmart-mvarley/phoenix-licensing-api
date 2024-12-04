@@ -23,9 +23,9 @@ public class Tests
         //var result = JsonSerializer.Serialize(trackedRecords.OrderBy(x => x.Created));
 
         var features = trackedRecords.Select(x => x.FeatureName).Distinct();
-        WriteCsv(trackedRecords.OrderBy(x => x.Created), "C:\\Dev\\testdata-chart.csv");
-        WriteCsvForExcelCharts(trackedRecords.OrderBy(x => x.Created), "C:\\Dev\\testdata-chart.csv", features.ToArray());
-        WriteCsvForTimestreamIngestion(trackedRecords.OrderBy(x => x.Created), "C:\\Dev\\testdata-timestream.csv");
+        WriteCsv(trackedRecords.OrderBy(x => x.Created), "C:\\Dev\\testdata-postgres-ingest.csv");
+        WriteCsvForExcelCharts(trackedRecords.OrderBy(x => x.Created), "C:\\Dev\\testdata-excel-chart.csv", features.ToArray());
+        WriteCsvForTimestreamIngestion(trackedRecords.OrderBy(x => x.Created), "C:\\Dev\\testdata-timestream-ingest.csv");
     }
 
     public static void WriteCsv<T>(IOrderedEnumerable<T> items, string path)
@@ -57,9 +57,9 @@ public class Tests
             return $"\"{{{string.Join(',', users!)}}}\"";
         }
 
-        if (propertyInfo.PropertyType == typeof(DateTime))
+        if (propertyInfo.PropertyType == typeof(DateTimeOffset))
         {
-            var val = propertyInfo.GetValue(obj, null) as DateTime?;
+            var val = propertyInfo.GetValue(obj, null) as DateTimeOffset?;
 
             return val!.Value.ToString("o", CultureInfo.InvariantCulture)!;
         }

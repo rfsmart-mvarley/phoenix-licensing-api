@@ -8,25 +8,7 @@
 # database or a cache. For examples, see the Awesome Compose repository:
 # https://github.com/docker/awesome-compose
 services:  
-  licensing.api:
-    build:
-      dockerfile: ./Rfsmart.Phoenix.Licensing.Web/Dockerfile
-      args:
-        NUGET_USERNAME: ${NUGET_USERNAME}
-        NUGET_TOKEN: ${NUGET_TOKEN}
-    ports:
-      - "5010:5010"
-    healthcheck:
-      test: timeout 10s bash -c ':> /dev/tcp/127.0.0.1/5010' || exit 1
-      interval: 60s
-      retries: 5
-      start_period: 20s
-      timeout: 10s
-    environment:
-      ASPNETCORE_ENVIRONMENT: "Development"
-    networks:
-      - phoenix
-
+  
   postgres:
     image: postgres:16.2
     environment:
@@ -35,7 +17,7 @@ services:
       PGUSER: ${POSTGRES_USER:-postgres}
       PGDATA: /data/postgres
     volumes:
-      - lc_postgres_data:/data/postgres
+      - mv_lc_postgres_data:/data/postgres
     ports:
       - '5432:5432'
     healthcheck:
@@ -44,8 +26,85 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - phoenix
+      - licensing
     restart: always
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    ports:
+      - 5672:5672
+      - 15672:15672
+    volumes:
+      - mv_lc_rabbitmq_data:/var/lib/rabbitmq/
+      - mv_lc_rabbitmq_logs:/var/log/rabbitmq
+    networks:
+      - licensing
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 30s
+      timeout: 30s
+      retries: 3
+
+  accounts.redis:
+    image: redis:7.0
+    volumes:      
+      - mv_lc_accounts_redis_data:/data
+    ports:      
+      - 6379:6379
+    healthcheck:
+      test: ["CMD", "redis-cli","ping"]
+    networks:
+      - licensing
+
+  accounts.web:
+    image: ghcr.io/rf-smart-for-oraclecloud/accounts-web:latest
+    ports:
+      - "5191:5191"
+    depends_on:
+      migrate.accounts:
+        condition: service_completed_successfully
+      accounts.redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: timeout 10s bash -c ':> /dev/tcp/127.0.0.1/5191' || exit 1
+      interval: 60s
+      retries: 5
+      start_period: 20s
+      timeout: 10s
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Development"
+      Database__Zones__zone1__host: postgres
+      Redis__Accounts__Configuration: 'accounts.redis:6379'
+      Events__Endpoint__Url: amqp://rabbitmq:5672
+      AWS_REGION: ${AWS_REGION}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_SESSION_TOKEN: ${AWS_SESSION_TOKEN}
+    networks:
+      - licensing
+    volumes:
+      - $HOME$USERPROFILE/.aws:/home/app/.aws:ro
+  
+  accounts.bootstrap:
+    image: ghcr.io/rf-smart-for-oraclecloud/cli    
+    command: accounts sync-admin --config-type file
+    depends_on:
+      accounts.web:
+        condition: service_healthy
+    environment:
+      DOTNET_ENVIRONMENT: Development
+      Deploy__Environment: phxdev
+      ServiceUrls__Overrides__accounts: http://accounts.web:5191
+      Database__Zones__zone1__Host: postgres
+      AWS_PROFILE: ${AWS_PROFILE:-ICS-phxdev_Admin}
+      AWS_REGION: ${AWS_REGION:-us-east-1}
+    volumes:
+      - ./cli-config:/home/app/.rfsmart/config:ro
+      - $HOME$USERPROFILE/.aws:/home/app/.aws:ro
+    networks:
+      - licensing
 
   migrate.schemas:
     image: ghcr.io/rf-smart-for-oraclecloud/cli
@@ -58,14 +117,34 @@ services:
       Database__Zones__zone1__Host: postgres
       AWS_REGION: us-east-1
     volumes:
-      - ./cli-config:/home/app/.rfsmart:ro
+      - ./cli-config:/home/app/.rfsmart/config:ro
       - ./Migrations:/Migrations:ro
     networks:
-      - phoenix
+      - licensing
+
+  migrate.accounts:
+    image: ghcr.io/rf-smart-for-oraclecloud/cli
+    command: db schema migrate --s3-path accounts/migrations/0.5.67.zip --s3-bucket phoenix-phxdev-ops-artifacts --ensure-db
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DOTNET_ENVIRONMENT: Development
+      Database__Zones__zone1__Host: postgres
+      AWS_REGION: us-east-1
+      AWS_PROFILE: ${AWS_PROFILE:-ICS-phxdev_Admin}
+    volumes:
+      - ./cli-config:/home/app/.rfsmart/config:ro
+      - $HOME$USERPROFILE/.aws:/home/app/.aws:ro
+    networks:
+      - licensing
 
 networks:
-  phoenix:
+  licensing:
     driver: bridge
 
 volumes:
-  lc_postgres_data:
+  mv_lc_postgres_data:
+  mv_lc_rabbitmq_data:
+  mv_lc_rabbitmq_logs:
+  mv_lc_accounts_redis_data:

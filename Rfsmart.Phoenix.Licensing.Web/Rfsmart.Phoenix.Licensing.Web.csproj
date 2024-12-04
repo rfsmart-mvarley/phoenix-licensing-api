@@ -19,7 +19,7 @@
     <PackageReference Include="DataDog.Trace.Bundle" Version="2.59.0" />
     <PackageReference Include="OpenTelemetry.AutoInstrumentation" Version="1.9.0" />
     <PackageReference Include="OpenTelemetry.Instrumentation.StackExchangeRedis" Version="1.9.0-beta.1" />
-    <PackageReference Include="Rfsmart.Phoenix.Api" Version="1.0.12" />
+    <PackageReference Include="Rfsmart.Phoenix.Api" Version="1.0.17" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
   </ItemGroup>
 

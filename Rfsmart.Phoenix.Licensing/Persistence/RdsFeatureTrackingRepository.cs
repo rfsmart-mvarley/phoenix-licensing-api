@@ -18,10 +18,8 @@ namespace Rfsmart.Phoenix.Licensing.Persistence
     [ExcludeFromCodeCoverage]
     public class RdsFeatureTrackingRepository(
         ILogger<RdsFeatureTrackingRepository> _logger,
-        IDbConnectionProvider _connectionProvider,
-        IContextProvider<UserContext> _userContextProvider,
-        IContextProvider<TenantContext> _tenantContextProvider
-    ) : TenantRepositoryBase(_connectionProvider, _userContextProvider, _logger), IFeatureTrackingRepository
+        RepositoryOptions<RdsFeatureTrackingRepository> repositoryOptions
+    ) : TenantRepositoryBase(repositoryOptions), IFeatureTrackingRepository
     {
         private const string SelectColumnList =
             "feature_name,users,created";
@@ -38,7 +36,7 @@ namespace Rfsmart.Phoenix.Licensing.Persistence
             _logger.LogDebug("Insert {@Request}", request);
 
             var featureRecord = await Exec(
-                _tenantContextProvider.Context!,
+                repositoryOptions.TenantContextProvider!.Context!,
                 db =>
                     db.QuerySingleAsync<FeatureTrackingRecord>(
                         $"""
@@ -85,7 +83,7 @@ namespace Rfsmart.Phoenix.Licensing.Persistence
                 """;
 
             return Exec(
-                _tenantContextProvider.Context!,
+                repositoryOptions.TenantContextProvider!.Context!,
                 db =>
                     new SearchHelper<FeatureTrackingRecord, FeatureRecordSort>(
                         querySql,
@@ -107,7 +105,7 @@ namespace Rfsmart.Phoenix.Licensing.Persistence
             _logger.LogInformation("Delete Feature Tracking Records {@Request}", request);
 
             var deletedRows = await Exec(
-                    _tenantContextProvider.Context!,
+                    repositoryOptions.TenantContextProvider!.Context!,
                     db =>
                         db.ExecuteAsync(
                             $"""
@@ -132,7 +130,7 @@ namespace Rfsmart.Phoenix.Licensing.Persistence
             _logger.LogDebug("Get {@Request}", request);
 
             var featureRecord = await Exec(
-                _tenantContextProvider.Context!,
+                repositoryOptions.TenantContextProvider!.Context!,
                 db =>
                     db.QueryFirstOrDefaultAsync<FeatureTrackingRecord>(
                         $"""
@@ -155,7 +153,7 @@ namespace Rfsmart.Phoenix.Licensing.Persistence
             _logger.LogDebug("Get tracking state");
 
             var featureRecord = await Exec(
-                _tenantContextProvider.Context!,
+                repositoryOptions.TenantContextProvider!.Context!,
                 db =>
                     db.QueryAsync<FeatureTrackingRecord>(
                         $"""
@@ -173,7 +171,7 @@ namespace Rfsmart.Phoenix.Licensing.Persistence
             _logger.LogDebug("Get tracking state");
 
             var featureRecord = await Exec(
-                _tenantContextProvider.Context!,
+                repositoryOptions.TenantContextProvider!.Context!,
                 db =>
                     db.QueryAsync<FeatureTrackingRecord>(
                         $"""
@@ -191,7 +189,7 @@ namespace Rfsmart.Phoenix.Licensing.Persistence
             _logger.LogDebug("Get overages");
 
             var featureRecord = await Exec(
-                _tenantContextProvider.Context!,
+                repositoryOptions.TenantContextProvider!.Context!,
                 db =>
                     db.QueryAsync<FeatureTrackingRecord>(
                         $"""
